@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Safe Route Finder</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Leaflet (OpenStreetMap) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f6f9;
+    }
+
+    h2 {
+      background-color: #6a1b9a;
+      color: white;
+      padding: 15px;
+      margin: 0;
+    }
+
+    .controls {
+      margin: 15px;
+    }
+
+    input {
+      padding: 10px;
+      margin: 5px;
+      width: 200px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      padding: 10px 15px;
+      margin: 5px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .route-btn { background-color: #6a1b9a; color: white; }
+    .sound-btn { background-color: orange; color: white; }
+    .sos-btn { background-color: red; color: white; }
+    .sms-btn { background-color: #d32f2f; color: white; }
+
+    #map { height: 500px; width: 100%; margin-top: 10px; }
+    .info { margin-top: 10px; font-weight: bold; color: #333; }
+  </style>
+</head>
+
+<body>
+
+  <h2>🌐 Nirbhaya</h2>
+
+  <div class="controls">
+    <input type="text" id="source" placeholder="Enter Source (lat,lng)">
+    <input type="text" id="destination" placeholder="Enter Destination (lat,lng)">
+    <br>
+    <button class="route-btn" onclick="findRoute()">Find Safe Route</button>
+    <button class="sound-btn" onclick="playAlert()">🔊 Alert Sound</button>
+    <button class="sos-btn" onclick="callSOS()">📞 SOS Call</button>
+    <button class="sms-btn" onclick="sendEmergencySMS()">📩 Send Emergency SMS</button>
+  </div>
+
+  <div id="map"></div>
+  <div class="info" id="routeInfo"></div>
+
+  <!-- Alarm Sound -->
+  <audio id="alarmSound" src="https://www.soundjay.com/button/beep-07.wav"></audio>
+
+  <script>
+    let map;
+    let routeLine;
+
+    function initMap() {
+      map = L.map('map').setView([10.8505, 76.2711], 7); // Kerala
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+    }
+    window.onload = initMap;
+
+    function findRoute() {
+      const source = document.getElementById("source").value;
+      const destination = document.getElementById("destination").value;
+
+      if (!source || !destination) {
+        alert("Enter coordinates like: 11.2588,75.7804");
+        return;
+      }
+
+      const src = source.split(",");
+      const dest = destination.split(",");
+      const srcLatLng = [parseFloat(src[0]), parseFloat(src[1])];
+      const destLatLng = [parseFloat(dest[0]), parseFloat(dest[1])];
+
+      if (routeLine) map.removeLayer(routeLine);
+
+      routeLine = L.polyline([srcLatLng, destLatLng], { color: "#6a1b9a", weight: 6 }).addTo(map);
+      L.marker(srcLatLng).addTo(map).bindPopup("Source").openPopup();
+      L.marker(destLatLng).addTo(map).bindPopup("Destination");
+      map.fitBounds([srcLatLng, destLatLng]);
+
+      const distance = map.distance(srcLatLng, destLatLng) / 1000;
+      document.getElementById("routeInfo").innerHTML = 
+        "✅ Route Generated | Distance: " + distance.toFixed(2) + " km";
+    }
+
+    // Alert sound + Malayalam voice
+    function playAlert() {
+      const alarm = document.getElementById("alarmSound");
+      alarm.play();
+
+      const msg = new SpeechSynthesisUtterance(
+        "എനിക്ക് സഹായം വേണം! ഞാൻ അപകടത്തിലാണ്! ദയവായി ഉടൻ സഹായിക്കൂ!"
+      );
+      msg.lang = "ml-IN";
+      msg.volume = 1;
+      msg.rate = 1;
+      msg.pitch = 1;
+
+      window.speechSynthesis.speak(msg);
+    }
+
+    // SOS Call
+    function callSOS() {
+      window.location.href = "tel:112";
+    }
+
+    // Emergency SMS via Twilio API (direct call, unsafe in browser)
+    async function sendEmergencySMS() {
+      if (!navigator.geolocation) {
+        alert("Geolocation not supported.");
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        const locationLink = `https://www.google.com/maps?q=${lat},${lng}`;
+        const message = `എനിക്ക് സഹായം വേണം! ഞാൻ അപകടത്തിലാണ്! എന്റെ സ്ഥാനം: ${locationLink}`;
+
+        const accountSid = "ACe68992f0540bb000d2f9d35851307199";
+        const authToken = "5d6c16586341cd3865217137b43c05bf"; // Replace with your Twilio Auth Token
+        const fromNumber = "+16206998804";   // Your Twilio number
+        const toNumber = "+918590502097";   // Emergency number
+
+        try {
+          const response = await fetch(
+            `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`,
+            {
+              method: "POST",
+              headers: {
+                "Authorization": "Basic " + btoa(accountSid + ":" + authToken),
+                "Content-Type": "application/x-www-form-urlencoded"
+              },
+              body: new URLSearchParams({
+                To: toNumber,
+                From: fromNumber,
+                Body: message
+              })
+            }
+          );
+
+          const result = await response.json();
+          console.log(result);
+          if (result.sid) {
+            alert("✅ Emergency SMS Sent Successfully!");
+          } else {
+            alert("❌ Failed to send SMS.");
+          }
+        } catch (error) {
+          console.error(error);
+          alert("❌ Error sending SMS.");
+        }
+
+      }, () => alert("Location access denied"));
+    }
+  </script>
+
+</body>
+</html>
