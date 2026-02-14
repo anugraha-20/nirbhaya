@@ -83,7 +83,7 @@ Using github pages
 
 ![Screenshot3](https://raw.githubusercontent.com/anugraha-20/nirbhaya/refs/heads/main/3.JPG)
 *SEND LOCATION AS SMS*
-![Screenshot4](https://raw.githubusercontent.com/anugraha-20/nirbhaya/refs/heads/main/WhatsApp Image 2026-02-14 at 6.02.36 AM.jpeg
+![Screenshot4](https://raw.githubusercontent.com/anugraha-20/nirbhaya/refs/heads/main/4.jpeg
 )*SOS CALL
 
 ---
@@ -97,11 +97,14 @@ Using github pages
 -Twilio API
 
 ### Video
-[Add your demo video link here - YouTube, Google Drive, etc.]
+[Add your demo video link here - 
 
-*Explaining what the video demonstrates - key features, user flow, technical highlights*
+https://github.com/user-attachments/assets/0f451757-186d-4683-8f96-4f68a5d79fb5
 
 
+
+
+YouTube, Google Drive, etc.]
 
 ## AI Tools Used (Optional - For Transparency Bonus)
 
@@ -117,7 +120,11 @@ If you used AI tools during development, document them here for transparency:
 **Percentage of AI-generated code:** 50
 
 **Human Contributions:**
-- Architecture design and planning
+- Architecture design and pla
+
+https://github.com/user-attachments/assets/f54cc782-26ea-4dfe-ba6a-a2f7447a3114
+
+nning
 - Custom business logic implementation
 - Integration and testing
 - UI/UX design decisions
